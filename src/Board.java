@@ -5,13 +5,11 @@ import java.util.TreeSet;
 
 public class Board {
     private int[][] tiles;
-    private int[][] goal;
     private int[] pos;
     private int hamming, manhattan;
     public Board(int[][] tiles){
         this.tiles = tiles;
         calculateDistances();
-        pos = getEmptyPos();
     }
     public String toString(){
         int n = this.size();
@@ -52,8 +50,6 @@ public class Board {
     }
     public Iterable<Board> neighbors(){
         ArrayList<Board> neighbors = new ArrayList<>();
-        if(pos == null)
-            pos = getEmptyPos();
         int n = this.size();
         int[][] changes = {{-1, 0}, {0, 1}, {1, 0}, {0, -1}};
         for(int[] change: changes){
@@ -74,8 +70,6 @@ public class Board {
         long numInversions = numInversions(tiles);
         if(n % 2 == 1)
             return numInversions % 2 == 0;
-        if(pos == null)
-            pos = getEmptyPos();
         return (numInversions + pos[0]) % 2 == 1;
     }
 
@@ -96,46 +90,22 @@ public class Board {
 
     private void calculateDistances(){
         int n = this.size();
-        if(goal == null)
-            goal = generateGoal(n);
-        for(int i = 0; i < n; ++i){
-            for(int j = 0; j < n; ++j){
-                if(tiles[i][j] == 0)
-                    continue;
-                int Y = (tiles[i][j] - 1) / n, X = (tiles[i][j] - 1) % n;
-                manhattan += Math.abs(X - j) + Math.abs(Y - i);
-                hamming += (tiles[i][j] == goal[i][j] ? 0 : 1);
-            }
-        }
-    }
-    private int[][] generateGoal(int n ){
-        int[][] goal = new int[n][n];
-        for(int i = 0; i < n; ++i){
-            for(int j = 0; j < n; ++j){
-                goal[i][j] = i * n + j + 1;
-            }
-        }
-        goal[n - 1][n - 1] = 0;
-        return goal;
-    }
-
-    private int[][] getTiles(){
-        return tiles;
-    }
-
-    private int[] getEmptyPos(){
-        int n = this.size();
-        int[] pos = {-1, -1};
         for(int i = 0; i < n; ++i){
             for(int j = 0; j < n; ++j){
                 if(tiles[i][j] == 0){
                     pos[0] = i;
                     pos[1] = j;
-                    return pos;
+                    continue;
                 }
+                int Y = (tiles[i][j] - 1) / n, X = (tiles[i][j] - 1) % n, ind = i * n + j + 1;
+                manhattan += Math.abs(X - j) + Math.abs(Y - i);
+                hamming += (tiles[i][j] == ind ? 0 : 1);
             }
         }
-        return pos;
+    }
+
+    private int[][] getTiles(){
+        return tiles;
     }
 
     private void swap(int[][] arr, int i, int j, int _i, int _j){
