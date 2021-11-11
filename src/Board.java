@@ -85,7 +85,7 @@ public class Board {
         long numInversions = numInversions();
         if(size % 2 == 1)
             return numInversions % 2 == 0;
-        return (numInversions + N / zeroPos) % 2 == 1;
+        return (numInversions + zeroPos / size) % 2 == 1;
     }
 
     private long numInversions(){
@@ -102,9 +102,11 @@ public class Board {
 
     private void calculateDistances(){
         for(int i = 0; i < N; ++i){
-            int Y = (tiles[i][j] - 1) / size, X = (tiles[i][j] - 1) % size, ind = i * size + j + 1;
-            manhattan += Math.abs(X - j) + Math.abs(Y - i);
-            hamming += (tiles[i][j] == ind ? 0 : 1);
+            if(tiles[i] == 0)
+                continue;
+            int diff = Math.abs(tiles[i] - i - 1);
+            manhattan += diff / size + diff % size;
+            hamming += (diff == 0 ? 0 : 1);
         }
     }
 
@@ -115,8 +117,8 @@ public class Board {
     }
 
     public static void main(String[] args) {
-        int[][] tiles = {{1, 2, 3, 4}, {5, 6, 0, 8}, {9, 10, 7, 11}, {13, 14, 15, 12}};
+        int[][] tiles = {{8, 1, 3}, {4, 0, 2}, {7, 6, 5}};
         Board board = new Board(tiles);
-        System.out.print(board.isSolvable());
+        System.out.print(board.hamming());
     }
 }
