@@ -20,9 +20,11 @@ public class Board {
         }
         calculateDistances();
     }
-    private Board(int[] tiles, int zeroPos){
+    private Board(int[] tiles, int zeroPos, int size, int N){
         this.tiles = tiles;
         this.zeroPos = zeroPos;
+        this.size = size;
+        this.N = N;
         calculateDistances();
     }
     public String toString(){
@@ -76,7 +78,7 @@ public class Board {
                 continue;
             int[] _tiles = tiles.clone();
             swap(_tiles, zeroPos, newZeroPos);
-            Board board = new Board(_tiles, newZeroPos);
+            Board board = new Board(_tiles, newZeroPos, size, N);
             neighbors.push(board);
         }
         return neighbors;
