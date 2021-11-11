@@ -72,18 +72,22 @@ public class Solver {
                 break;
             for(Board board: searchNode.getBoard().neighbors()){
                 SearchNode neighborNode = new SearchNode(searchNode, board, searchNode.getMoves() + 1);
+                if(searchNode.createsLoop())
+                    continue;
                 minPQ.insert(neighborNode);
             }
         }
+        moves = searchNode.getMoves();
         while (searchNode != null){
             solution.add(0, searchNode.getBoard());
             searchNode = searchNode.getParent();
         }
     }
     public static void main(String[] args) {
-        int[][] arr = {{0, 1, 3}, {4, 2, 5}, {7, 8, 6}};
+        int[][] arr = {{5, 3, 1, 4}, {10, 2, 8, 7}, {14, 13, 0, 11}, {6,9,15,12}};
         Board board = new Board(arr);
         Solver solver = new Solver(board);
+        System.out.println(solver.moves());
         for (Board _b: solver.solution()){
             System.out.println(_b);
         }
