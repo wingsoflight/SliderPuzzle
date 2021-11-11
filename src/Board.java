@@ -77,12 +77,12 @@ public class Board {
         int n = arr.length;
         long numInversions = 0;
         BITree biTree = new BITree(n * n);
-        for(int i = 0; i < n; ++i){
-            for(int j = 0; j < n; ++j){
-                if(arr[i][j] == 0)
+        for (int[] ints : arr) {
+            for (int j = 0; j < n; ++j) {
+                if (ints[j] == 0)
                     continue;
-                numInversions += biTree.getSum(n * n) - biTree.getSum(arr[i][j]);
-                biTree.update(arr[i][j], 1);
+                numInversions += biTree.getSum(n * n) - biTree.getSum(ints[j]);
+                biTree.update(ints[j], 1);
             }
         }
         return numInversions;
@@ -90,6 +90,7 @@ public class Board {
 
     private void calculateDistances(){
         int n = this.size();
+        pos = new int[2];
         for(int i = 0; i < n; ++i){
             for(int j = 0; j < n; ++j){
                 if(tiles[i][j] == 0){
