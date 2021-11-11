@@ -27,7 +27,9 @@ public class Solver {
 
         @Override
         public int compareTo(SearchNode that) {
-            return this.board.manhattan() - that.board.manhattan();
+            int a = this.moves + this.board.manhattan();
+            int b = that.moves + that.board.manhattan();
+            return a - b;
         }
     }
     Board initial;

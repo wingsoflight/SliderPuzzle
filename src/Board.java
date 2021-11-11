@@ -51,7 +51,7 @@ public class Board {
         return manhattan;
     }
     public boolean isGoal(){
-        return manhattan == 0;
+        return manhattan == 0 && hamming == 0;
     }
     public boolean equals(Object y){
         if(this == y)
