@@ -1,22 +1,35 @@
-import java.util.ArrayList;
+import edu.princeton.cs.algs4.Stack;
+
 import java.util.Arrays;
-import java.util.Objects;
-import java.util.TreeSet;
 
 public class Board {
-    private int[][] tiles;
-    private int[] pos;
-    private int hamming, manhattan;
+    private int[] tiles;
+    private int zeroPos;
+    private int hamming, manhattan, size, N;
     public Board(int[][] tiles){
+        size = tiles.length;
+        N = size * size;
+        this.tiles = new int[N];
+        int k = 0;
+        for(int i = 0; i < size; ++i){
+            for(int j = 0; j < size; ++j){
+                this.tiles[k++] = tiles[i][j];
+                if(tiles[i][j] == 0)
+                    zeroPos = k;
+            }
+        }
+        calculateDistances();
+    }
+    private Board(int[] tiles, int zeroPos){
         this.tiles = tiles;
+        this.zeroPos = zeroPos;
         calculateDistances();
     }
     public String toString(){
-        int n = this.size();
         StringBuilder boardRepr = new StringBuilder();
-        for(int i = 0; i < n; ++i){
+        for(int i = 0; i < size; ++i){
             StringBuilder rowRepr = new StringBuilder();
-            for(int j = 0; j < n; ++j){
+            for(int j = 0; j < size; ++j){
                 rowRepr.append(tileAt(i, j)).append(" ");
             }
             boardRepr.append(rowRepr).append(System.lineSeparator());
@@ -24,10 +37,10 @@ public class Board {
         return boardRepr.toString();
     }
     public int tileAt(int row, int col){
-        return tiles[row][col];
+        return tiles[row * size + col];
     }
     public int size(){
-        return tiles.length;
+        return size;
     }
     public int hamming(){
         return hamming;
@@ -46,73 +59,59 @@ public class Board {
         if(y.getClass() != this.getClass())
             return false;
         Board that = (Board) y;
-        return Arrays.deepEquals(this.getTiles(), that.getTiles());
+        return Arrays.equals(this.tiles, that.tiles);
     }
+
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(this.tiles);
+    }
+
     public Iterable<Board> neighbors(){
-        ArrayList<Board> neighbors = new ArrayList<>();
-        int n = this.size();
-        int[][] changes = {{-1, 0}, {0, 1}, {1, 0}, {0, -1}};
-        for(int[] change: changes){
-            int[] _pos = {pos[0] + change[0], pos[1] + change[1]};
-            if(_pos[0] < 0 || _pos[0] >= n || _pos[1] < 0 || _pos[1] >= n)
+        Stack<Board> neighbors = new Stack<>();
+        int[] changes = {size, -size, -1, 1};
+        for(int change: changes){
+            int newZeroPos = zeroPos + change;
+            if(newZeroPos < 0 || newZeroPos >= N)
                 continue;
-            int[][] _tiles = new int[n][n];
-            for(int i = 0; i < n; ++i)
-                _tiles[i] = tiles[i].clone();
-            swap(_tiles, _pos[0], _pos[1], pos[0], pos[1]);
-            Board board = new Board(_tiles);
-            neighbors.add(board);
+            int[] _tiles = tiles.clone();
+            swap(_tiles, zeroPos, newZeroPos);
+            Board board = new Board(_tiles, newZeroPos);
+            neighbors.push(board);
         }
         return neighbors;
     }
     public boolean isSolvable(){
-        int n = this.size();
-        long numInversions = numInversions(tiles);
-        if(n % 2 == 1)
+        long numInversions = numInversions();
+        if(size % 2 == 1)
             return numInversions % 2 == 0;
-        return (numInversions + pos[0]) % 2 == 1;
+        return (numInversions + N / zeroPos) % 2 == 1;
     }
 
-    private long numInversions(int[][] arr){
-        int n = arr.length;
+    private long numInversions(){
         long numInversions = 0;
-        BITree biTree = new BITree(n * n);
-        for (int[] ints : arr) {
-            for (int j = 0; j < n; ++j) {
-                if (ints[j] == 0)
+        BITree biTree = new BITree(N);
+        for (int i = 0; i < N; ++i) {
+            if (tiles[i] == 0)
                     continue;
-                numInversions += biTree.getSum(n * n) - biTree.getSum(ints[j]);
-                biTree.update(ints[j], 1);
-            }
+            numInversions += biTree.getSum(N) - biTree.getSum(tiles[i]);
+            biTree.update(tiles[i], 1);
         }
         return numInversions;
     }
 
     private void calculateDistances(){
-        int n = this.size();
-        pos = new int[2];
-        for(int i = 0; i < n; ++i){
-            for(int j = 0; j < n; ++j){
-                if(tiles[i][j] == 0){
-                    pos[0] = i;
-                    pos[1] = j;
-                    continue;
-                }
-                int Y = (tiles[i][j] - 1) / n, X = (tiles[i][j] - 1) % n, ind = i * n + j + 1;
-                manhattan += Math.abs(X - j) + Math.abs(Y - i);
-                hamming += (tiles[i][j] == ind ? 0 : 1);
-            }
+        for(int i = 0; i < N; ++i){
+            int Y = (tiles[i][j] - 1) / size, X = (tiles[i][j] - 1) % size, ind = i * size + j + 1;
+            manhattan += Math.abs(X - j) + Math.abs(Y - i);
+            hamming += (tiles[i][j] == ind ? 0 : 1);
         }
     }
 
-    private int[][] getTiles(){
-        return tiles;
-    }
-
-    private void swap(int[][] arr, int i, int j, int _i, int _j){
-        int tmp = arr[i][j];
-        arr[i][j] = arr[_i][_j];
-        arr[_i][_j] = tmp;
+    private void swap(int[] arr, int i, int j){
+        int tmp = arr[i];
+        arr[i] = arr[j];
+        arr[j] = tmp;
     }
 
     public static void main(String[] args) {

@@ -1,4 +1,5 @@
 import edu.princeton.cs.algs4.MinPQ;
+import edu.princeton.cs.algs4.Stack;
 
 import java.util.ArrayList;
 
@@ -14,39 +15,25 @@ public class Solver {
             this.moves = moves;
         }
 
-        public Board getBoard(){
-            return board;
-        }
-
-        public SearchNode getParent() {
-            return parent;
-        }
-
-        public int getMoves() {
-            return moves;
-        }
-
         public boolean createsLoop(){
-            SearchNode parent = this.getParent();
+            SearchNode parent = this.parent;
             while (parent != null){
-                if(this.getBoard().equals(parent.getBoard()))
+                if(this.board.equals(parent.board))
                     return true;
-                parent = parent.getParent();
+                parent = parent.parent;
             }
             return false;
         }
 
         @Override
         public int compareTo(SearchNode that) {
-            int a = this.getMoves() + this.getBoard().manhattan();
-            int b = that.getMoves() + that.getBoard().manhattan();
-            return a - b;
+            return this.board.manhattan() - that.board.manhattan();
         }
     }
     Board initial;
     int moves;
     MinPQ<SearchNode> minPQ;
-    ArrayList<Board> solution;
+    Stack<Board> solution;
     public Solver(Board inital){
         if(inital == null)
             throw new IllegalArgumentException("Initial board cannot be NULL");
@@ -54,7 +41,7 @@ public class Solver {
             throw new RuntimeException("Provided initial board is unsolvable");
         this.initial = inital;
         minPQ = new MinPQ<>();
-        solution = new ArrayList<>();
+        solution = new Stack<>();
         solve();
     }
     public int moves(){
@@ -68,19 +55,19 @@ public class Solver {
         minPQ.insert(searchNode);
         while (!minPQ.isEmpty()){
             searchNode = minPQ.delMin();
-            if (searchNode.getBoard().isGoal())
+            if (searchNode.board.isGoal())
                 break;
-            for(Board board: searchNode.getBoard().neighbors()){
-                SearchNode neighborNode = new SearchNode(searchNode, board, searchNode.getMoves() + 1);
+            for(Board board: searchNode.board.neighbors()){
+                SearchNode neighborNode = new SearchNode(searchNode, board, searchNode.moves + 1);
                 if(searchNode.createsLoop())
                     continue;
                 minPQ.insert(neighborNode);
             }
         }
-        moves = searchNode.getMoves();
+        moves = searchNode.moves;
         while (searchNode != null){
-            solution.add(0, searchNode.getBoard());
-            searchNode = searchNode.getParent();
+            solution.push(searchNode.board);
+            searchNode = searchNode.parent;
         }
     }
     public static void main(String[] args) {
