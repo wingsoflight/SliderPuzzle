@@ -1,11 +1,14 @@
-import edu.princeton.cs.algs4.Stack;
-
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class Board {
-    private int[] tiles;
+    private final int[] tiles;
     private int zeroPos;
-    private int hamming, manhattan, size, N;
+    private final int size;
+    private int hamming;
+    private int manhattan;
+    private final int N;
     public Board(int[][] tiles){
         size = tiles.length;
         N = size * size;
@@ -13,9 +16,9 @@ public class Board {
         int k = 0;
         for(int i = 0; i < size; ++i){
             for(int j = 0; j < size; ++j){
-                this.tiles[k++] = tiles[i][j];
                 if(tiles[i][j] == 0)
                     zeroPos = k;
+                this.tiles[k++] = tiles[i][j];
             }
         }
         calculateDistances();
@@ -37,6 +40,7 @@ public class Board {
             boardRepr.append(rowRepr).append(System.lineSeparator());
         }
         return boardRepr.toString();
+//        return "";
     }
     public int tileAt(int row, int col){
         return tiles[row * size + col];
@@ -51,7 +55,7 @@ public class Board {
         return manhattan;
     }
     public boolean isGoal(){
-        return manhattan == 0 && hamming == 0;
+        return manhattan == 0;
     }
     public boolean equals(Object y){
         if(this == y)
@@ -63,29 +67,28 @@ public class Board {
         Board that = (Board) y;
         return Arrays.equals(this.tiles, that.tiles);
     }
-
-    @Override
-    public int hashCode() {
-        return Arrays.hashCode(this.tiles);
-    }
-
     public Iterable<Board> neighbors(){
-        Stack<Board> neighbors = new Stack<>();
-        int[] changes = {size, -size, -1, 1};
+        List<Board> neighbors = new ArrayList<>();
+        int newZeroPos;
+        int[] changes = {-size, size, -1, 1};
         for(int change: changes){
-            int newZeroPos = zeroPos + change;
-            if(newZeroPos < 0 || newZeroPos >= N)
+            if(zeroPos % size == 0 && change == -1 || zeroPos % size == size - 1 && change == 1)
                 continue;
-            int[] _tiles = tiles.clone();
+            newZeroPos = zeroPos + change;
+            if(newZeroPos >= N || newZeroPos < 0)
+                continue;
+            int[] _tiles = new int[N];
+            System.arraycopy(tiles, 0, _tiles, 0, N);
             swap(_tiles, zeroPos, newZeroPos);
             Board board = new Board(_tiles, newZeroPos, size, N);
-            neighbors.push(board);
+            neighbors.add(board);
         }
         return neighbors;
     }
     public boolean isSolvable(){
+        int n = this.size();
         long numInversions = numInversions();
-        if(size % 2 == 1)
+        if(n % 2 == 1)
             return numInversions % 2 == 0;
         return (numInversions + zeroPos / size) % 2 == 1;
     }
@@ -95,7 +98,7 @@ public class Board {
         BITree biTree = new BITree(N);
         for (int i = 0; i < N; ++i) {
             if (tiles[i] == 0)
-                    continue;
+                continue;
             numInversions += biTree.getSum(N) - biTree.getSum(tiles[i]);
             biTree.update(tiles[i], 1);
         }
@@ -104,13 +107,15 @@ public class Board {
 
     private void calculateDistances(){
         for(int i = 0; i < N; ++i){
-            if(tiles[i] == 0)
+            if(tiles[i] == 0){
                 continue;
-            int diff = Math.abs(tiles[i] - i - 1);
-            manhattan += diff / size + diff % size;
-            hamming += (diff == 0 ? 0 : 1);
+            }
+            manhattan += Math.abs(i / size - (tiles[i] - 1) / size);
+            manhattan += Math.abs(i % size - (tiles[i] - 1) % size);
+            hamming += (tiles[i] == i + 1 ? 0 : 1);
         }
     }
+
 
     private void swap(int[] arr, int i, int j){
         int tmp = arr[i];
@@ -119,8 +124,9 @@ public class Board {
     }
 
     public static void main(String[] args) {
-        int[][] tiles = {{8, 1, 3}, {4, 0, 2}, {7, 6, 5}};
+        int[][] tiles = {{8,1,3},{4,0,2},{7,6,5}};
         Board board = new Board(tiles);
-        System.out.print(board.hamming());
+        System.out.println(board.manhattan);
+        System.out.println(board.hamming);
     }
 }

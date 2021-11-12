@@ -1,13 +1,11 @@
 import edu.princeton.cs.algs4.MinPQ;
 import edu.princeton.cs.algs4.Stack;
 
-import java.util.ArrayList;
-
 public class Solver {
-    public class SearchNode implements Comparable<SearchNode>{
-        private int moves;
-        private Board board;
-        private SearchNode parent;
+    public static class SearchNode implements Comparable<SearchNode>{
+        private final int moves;
+        private final Board board;
+        private final SearchNode parent;
 
         public SearchNode(SearchNode parent, Board board, int moves){
             this.parent = parent;
@@ -16,19 +14,17 @@ public class Solver {
         }
 
         public boolean createsLoop(){
-            SearchNode parent = this.parent;
-            while (parent != null){
-                if(this.board.equals(parent.board))
-                    return true;
-                parent = parent.parent;
-            }
-            return false;
+            if(this.parent == null || this.parent.parent == null)
+                return false;
+            return this.board.equals(this.parent.parent.board);
         }
 
         @Override
         public int compareTo(SearchNode that) {
             int a = this.moves + this.board.manhattan();
             int b = that.moves + that.board.manhattan();
+            if(a == b)
+                return that.moves - this.moves;
             return a - b;
         }
     }
@@ -40,7 +36,7 @@ public class Solver {
         if(inital == null)
             throw new IllegalArgumentException("Initial board cannot be NULL");
         if (!inital.isSolvable())
-            throw new RuntimeException("Provided initial board is unsolvable");
+            throw new IllegalArgumentException("Provided initial board is unsolvable");
         this.initial = inital;
         minPQ = new MinPQ<>();
         solution = new Stack<>();
